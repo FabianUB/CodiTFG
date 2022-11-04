@@ -25,21 +25,22 @@ def getDataFromDB():
 
     return df
 
-conv = {"Sant Joan - Massies de Roda":("alt1", "alt2"), "Pasteral - Colomers":("baix1", "baix2"), "Colomers - Toroella":("baix2", "baix3"), "Precipitacions - Sant Joan":("altPrep1", "alt1"), "Precipitacions - Massies de Roda":("altPrep2", "alt2"),
- "Precipitacions - Pasteral":("baixPrep1", "baix1"), "Precipitacions - Colomers":("baixPrep1", "baix2"), "Precipitacions - Colomers (Alt)":("baixPrep2", "baix2"), "Precipitacions - Torroella":("baixPrep2", "baix2")}
-series = ["Sant Joan - Massies de Roda", "Pasteral - Colomers", "Colomers - Toroella", "Precipitacions - Sant Joan", "Precipitacions - Massies de Roda", "Precipitacions - Pasteral", "Precipitacions - Colomers", "Precipitacions - Colomers (Alt)", "Precipitacions - Torroella"]
 
 st.write('Series a analitzar')
 
-series = st.selectbox("Series", series)
+serieFinal = st.selectbox("Serie Final", ['massies', 'colomers'])
+
+if serieFinal == 'massies':
+    serieInicial = st.selectbox("Serie Inicial", ['L17147-72-00005','L17079-72-00005', 'F009891', 'alt1', 'DG','CG','CI','V4','CC','V5','CY','VN','WS'])
+if serieFinal == 'colomers':
+    serieInicial = st.selectbox("Serie Inicial", ['F000005', 'L17079-72-00004', 'F001243', 'KE', 'WS', 'UO', 'UN', 'DJ'])
+
 
 
 st.title('Dades Funcions Pearson DF')
 
 df = getDataFromDB()
-s1Proc = conv[series][0]
-s2Proc = conv[series][1]
-df = df.loc[(df['serie1'] == s1Proc) & (df['serie2'] == s2Proc)]
+df = df.loc[(df['serie1'] == str(serieInicial).lower()) & (df['serie2'] == str(serieFinal).lower())]
 df1 = df.iloc[:,:-2]
 st.dataframe(df1)
 
