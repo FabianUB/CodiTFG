@@ -5,6 +5,7 @@ import datetime
 from deta import Deta
 import itertools
 import statistics
+from collections import Counter
 
 @st.cache
 def getDataFromDB():
@@ -49,18 +50,28 @@ cols[1].metric('Temps segons Mitja Total', df['meanTime'].mean())
 
 st.title('Dades Funcions Pearson Top')
 df2 = df[['dataInici', 'dataFinal', 'topFiveTime']]
-st.dataframe(df2, use_container_width=True)
+st.dataframe(df2)
 
-cols = st.columns(3)
+cols = st.columns(2)
 
 listOfLists = df['topFiveTime'].to_list()
-topFive = list(itertools.chain.from_iterable(listOfLists))
+c = Counter(itertools.chain.from_iterable(listOfLists))
+jointList = c.most_common(5)
 
-modes = statistics.multimode(topFive)
-jointList = ','.join(str(x) for x in modes)
-cols[0].metric('Temps segon Mitjana (Top 5)', statistics.median(topFive))
-cols[1].metric('Temps segons Mitja (Top 5)', statistics.mean(topFive))
-cols[2].metric('Temps segons Moda (Top 5)', jointList)
+values = itertools.chain.from_iterable(listOfLists)
+
+
+
+cols[0].metric('Temps segon Mitjana (Top 5)', statistics.median(values))
+#cols[1].metric('Temps segons Mitja (Top 5)', statistics.mean(values))
+
+cols = st.columns(5)
+
+cols[0].metric('Moda Top 1', jointList[0][0], jointList[0][1])
+cols[1].metric('Moda Top 2', jointList[1][0], jointList[1][1])
+cols[2].metric('Moda Top 3', jointList[2][0], jointList[2][1])
+cols[3].metric('Moda Top 4', jointList[3][0], jointList[3][1])
+cols[4].metric('Moda Top 5', jointList[4][0], jointList[4][1])
 
 
 
