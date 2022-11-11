@@ -24,47 +24,32 @@ def calcularAnomaly(df, col, cont=0.005):
     return output
 
 @st.cache
-def loadDataAltTer():
+def loadDataAltTer(nom):
     altTer = pd.read_excel("Dataframes/df_imputedAltTerKNN.xlsx", index_col=0)
-    santJoan = calcularAnomaly(altTer, "L17167-72-00001")
-    massiesRoda = calcularAnomaly(altTer, "L08116-72-00002")
+    estacio = calcularAnomaly(altTer, nom)
     
-    return santJoan, massiesRoda
+    return estacio
 
 @st.cache
-def loadDataBaixTer():
+def loadDataBaixTer(nom):
     baixTer = pd.read_excel("Dataframes/df_imputedBaixTerKNN.xlsx", index_col=0)
-    pasteralCabal = calcularAnomaly(baixTer, "F001242")
-    colomers = calcularAnomaly(baixTer, "L17055-72-00002")
-    torroellaMontegri = calcularAnomaly(baixTer, "L17199-72-00001")
+    estacio = calcularAnomaly(baixTer, nom)
     
-    return pasteralCabal, colomers, torroellaMontegri
+    return estacio
+
+
 
 @st.cache
-def loadDataPrecipitacionsAlt():
+def loadDataPrecipitacions(nom):
     precipitacions = pd.read_csv("finalsDF/DF_SMC.csv", index_col=0)
     #Carregar dades
-    santPau = calcularAnomaly(precipitacions, "CI")
-    gurb = calcularAnomaly(precipitacions, "V3")
-    
-    #Moving Average
-    santPau['data'] = santPau['data'].rolling(window=5).mean()
-    gurb['data'] = santPau['data'].rolling(window=5).mean()
-    
-    return santPau, gurb
+    estacio = calcularAnomaly(precipitacions, nom)
 
-@st.cache
-def loadDataPrecipitacionsBaix():
-    precipitacions = pd.read_csv("finalsDF/DF_SMC.csv", index_col=0)
-    #Carregar dades
-    angles = calcularAnomaly(precipitacions, "DN")
-    talladaEmporda = calcularAnomaly(precipitacions, "UB")
-    
     #Moving Average
-    angles['data'] = angles['data'].rolling(window=5).mean()
-    talladaEmporda['data'] = talladaEmporda['data'].rolling(window=5).mean()
+    estacio['data'] = estacio['data'].rolling(window=5).mean()
     
-    return angles, talladaEmporda
+    
+    return estacio
 
 def selectTimespan(df, start_date, end_date):
     df["timestamp"] = pd.to_datetime(df["timestamp"])
@@ -173,37 +158,31 @@ def pearsonTop(inici, final, s1, s2, top=5, n=48, m=96):
 
     return df.head(top)
 
-@st.cache()
-def getDataRius():
-    alt1, alt2 = loadDataAltTer()
-    baix1, baix2, baix3 = loadDataBaixTer()
-    return alt1, alt2, baix1, baix2, baix3
 
-@st.cache()
-def getDataPrecipitacions():
-    altPrep1, altPrep2 = loadDataPrecipitacionsAlt()
-    baixPrep1, baixPrep2 = loadDataPrecipitacionsBaix()
-    return altPrep1, altPrep2, baixPrep1, baixPrep2
 
-alt1, alt2, baix1, baix2, baix3 = getDataRius()
-altPrep1, altPrep2, baixPrep1, baixPrep2 = getDataPrecipitacions()
+
+
+massies = loadDataAltTer('L08116-72-00002')
+colomers = loadDataBaixTer('L17055-72-00002')
+estacionsPlujaAlt = ['DG','CG','CI','V4','CC','V5','CY','VN','WS']
+estacionsCabalAlt = ['L17147-72-00005','L17079-72-00005', 'F009891' ]
+estacionsPlujaBaix = ['KE', 'WS', 'UO', 'UN', 'DJ']
+estacionsCabalBaix = ['F000005', 'L17079-72-00004', 'F001243']
 
 deta = Deta('a0kv6ay3_MBndet58XcwtGCWVntnKqyF743Wcixkt')
-series = ["alt1", "alt2", "baix1", "baix2", "baix3", "altPrep1", "altPrep2", "baixPrep1", "baixPrep2"]
-conv = {"alt1":alt1, "alt2":alt2, "baix1":baix1, "baix2":baix2, "baix3":baix3, "altPrep1":altPrep1, "altPrep2":altPrep2, "baixPrep1":baixPrep1, "baixPrep2":baixPrep2}
+final = ['massies', 'colomers']
 st.sidebar.write('Series a analitzar')
 cols = st.sidebar.columns(2)
-s1 = cols[0].selectbox("s1", series)
-s2 = cols[1].selectbox("s2", series)
+s1 = cols[0].selectbox("s1", estacionsCabalBaix)
+s2 = cols[1].selectbox("s2", final)
 st.sidebar.write('Data de inici i de final')
 cols = st.sidebar.columns(2)
-dateFormat = "%Y-%m-%d"
-minDate = datetime.datetime.strptime("2009-01-01", dateFormat)
-maxDate = datetime.datetime.strptime("2020-12-31", dateFormat)
-value1 = datetime.datetime.strptime("2020-01-01", dateFormat)
-value2 = datetime.datetime.strptime("2020-01-31", dateFormat)
-inici = st.sidebar.date_input("Data Inici", min_value=minDate, max_value=maxDate, value=value1)
-final = st.sidebar.date_input("Data Final", min_value=minDate, max_value=maxDate, value=value2)
+fecha = st.selectbox('Fecha Anomalia', [('2010-05-02','2010-05-14'),('2010-10-09','2010-10-16'),('2011-10-09','2011-03-19'),
+('2011-11-16','2011-11-23'),('2013-03-05','2013-03-12'),('2013-11-16','2013-11-23'),('2014-11-18','2014-12-04'),('2015-11-01','2015-11-07'),
+('2017-02-12','2017-02-26'),('2018-04-08','2018-04-15'),('2019-10-20','2019-10-26'),('2020-01-20','2020-01-27'),
+('2020-06-07','2020-06-21'),('2020-08-28','2020-09-03'),('2020-11-26','2020-12-03')])
+inici = datetime.datetime.strptime(fecha[0], '%Y-%m-%d')
+final = datetime.datetime.strptime(fecha[1], '%Y-%m-%d')
 st.sidebar.write('Valors de n i m')
 cols = st.sidebar.columns(2)
 n = cols[0].number_input("n", min_value=0, value=48)
@@ -211,23 +190,39 @@ m = cols[1].number_input("m", min_value=0, value=48)
 st.sidebar.write('Nombre de resultats pearson Top')
 top = st.sidebar.number_input("top", min_value=5)
 
-st.title('Resultats PearsonDF')
-tMedian, vMedian, tMean, vMean = pearsonDF(inici, final, conv[s1], conv[s2], n, m, debug=True)
-st.write(f"Temps mitjana (median): {tMedian}, Valor mitjana: {vMedian}")
-st.write(f"Temps mitja (mean): {tMean}, Valor mitja: {vMean}")
-#st.write(f"Temps moda (mode): {tMode}, Valor smitjana: {vMode}")
+if s2 == 'massies':
+    st.title('Resultats PearsonDF Massies')
 
-st.title('Resultats PearsonTop')
-pt = pearsonTop(inici, final, conv[s1], conv[s2], top, n, m)
-st.dataframe(pt)
-topFiveTime = pt.index.to_list()
-topFiveValues = pt['r'].to_list()
+    tMedian, vMedian, tMean, vMean = pearsonDF(inici, final, loadDataPrecipitacions(s1), massies, n, m, debug=True)
+    st.write(f"Temps mitjana (median): {tMedian}, Valor mitjana: {vMedian}")
+    st.write(f"Temps mitja (mean): {tMean}, Valor mitja: {vMean}")
+    #st.write(f"Temps moda (mode): {tMode}, Valor smitjana: {vMode}")
+
+    st.title('Resultats PearsonTop Massies')
+    pt = pearsonTop(inici, final, loadDataPrecipitacions(s1), massies, top, n, m)
+    st.dataframe(pt)
+    topFiveTime = pt.index.to_list()
+    topFiveValues = pt['r'].to_list()
+
+elif s2 == 'colomers':
+    st.title('Resultats PearsonDF Colomers')
+
+    tMedian, vMedian, tMean, vMean = pearsonDF(inici, final, loadDataBaixTer(s1), colomers, n, m, debug=True)
+    st.write(f"Temps mitjana (median): {tMedian}, Valor mitjana: {vMedian}")
+    st.write(f"Temps mitja (mean): {tMean}, Valor mitja: {vMean}")
+    #st.write(f"Temps moda (mode): {tMode}, Valor smitjana: {vMode}")
+
+    st.title('Resultats PearsonTop Colomers')
+    pt = pearsonTop(inici, final, loadDataBaixTer(s1), colomers, top, n, m)
+    st.dataframe(pt)
+    topFiveTime = pt.index.to_list()
+    topFiveValues = pt['r'].to_list()
 
 
 
 if st.button('Guardar en BDD'):
     db = deta.Base('TFG')
-    row = {'dataInici':str(inici), 'dataFinal':str(final), 'serie1':str(s1), 'serie2':str(s2), 'medianTime':float(tMedian), 'medianValue':float(vMedian), 'meanTime':float(tMean), 'meanValue':float(vMean), 'm':int(m), 'n':int(n),
+    row = {'dataInici':str(inici), 'dataFinal':str(final), 'serie1':str(s1).lower(), 'serie2':str(s2).lower(), 'medianTime':float(tMedian), 'medianValue':float(vMedian), 'meanTime':float(tMean), 'meanValue':float(vMean), 'm':int(m), 'n':int(n),
     'topFiveTime':topFiveTime, 'topFiveValues':topFiveValues}
     db.put(row)
     st.success('Introduida amb exit a la BBDD')
